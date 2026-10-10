@@ -149,10 +149,26 @@ document.getElementById("backupBtn").addEventListener("click",()=>download("coac
 document.getElementById("importFile").addEventListener("change",async e=>{
   const file=e.target.files[0]; if(!file) return;
   const text=await file.text();
-  try{ if(file.name.endsWith(".json")){ players=JSON.parse(text); } else { players=importCsv(text); } selectedId=players[0]?.id||null; render(); alert("Import complete. Data is saved only in this browser."); }
+  try{ const imported = file.name.endsWith(".json") ? JSON.parse(text) : importCsv(text); players=mergePlayers(players, imported); selectedId=players[0]?.id||null; render(); alert("Import complete. New players and assignments were merged into the board, not wiped over it. Data is saved only in this browser."); }
   catch(err){ alert("Import failed. Check the file matches the sample format."); }
   e.target.value="";
 });
+function mergePlayers(existing, incoming){
+  const byName = new Map(existing.map(p=>[p.name.trim().toLowerCase(), p]));
+  incoming.forEach(p=>{
+    const key = (p.name||"Unnamed Player").trim().toLowerCase();
+    if(!byName.has(key)){ byName.set(key, p); return; }
+    const current = byName.get(key);
+    current.position = p.position || current.position;
+    current.year = p.year || current.year;
+    current.email = p.email || current.email;
+    current.notes = p.notes || current.notes;
+    current.lastCheck = p.lastCheck || "Imported update";
+    const seen = new Map(current.assignments.map(a=>[(a.course+"|"+a.title+"|"+a.due).toLowerCase(), a]));
+    (p.assignments||[]).forEach(a=>{ const k=(a.course+"|"+a.title+"|"+a.due).toLowerCase(); if(seen.has(k)){ seen.get(k).status = a.status; } else { current.assignments.push(a); seen.set(k,a); } });
+  });
+  return [...byName.values()];
+}
 function csvCell(v){ return `"${String(v??"").replace(/"/g,'""')}"`; }
 function importCsv(text){
   const lines=text.trim().split(/\r?\n/); const header=lines.shift().split(",").map(s=>s.trim().toLowerCase());

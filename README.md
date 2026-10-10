@@ -30,10 +30,16 @@ This v1 site saves imported and typed-in player data only in the browser on the 
 
 ## How player updates get here
 
-1. Each player pastes the shared Muse prompt into their own Muse account.
-2. Their Muse checks Canvas every day at 5:00 PM and emails the coach when work is missed or turned in.
-3. The coach imports or types those updates into this command center.
-4. Work the colors: red first, yellow next, green is good.
+This GitHub Pages site is a static page — it has no login, database, or inbox of its own, so players' Muse accounts cannot push directly into it. The connection is the coach's email plus an import file:
+
+1. Each player pastes the shared Muse prompt (v2) into their own Muse account.
+2. On the first setup, their Muse sweeps all of Canvas (Dashboard/To Do, Calendar, and every course's Announcements, Syllabus, Assignments, Modules, Discussions, Quizzes, and Grades — because teachers hide work in different places), shows the player an Initial Full Report with every course, teacher, class time if known, upcoming/missed/turned-in work, then emails that full report to the coach after the player approves it. A CSV in the format `name,position,year,course,assignment,due,status` is attached or pasted in the email.
+3. The coach imports that first CSV here with the Import button. It creates the player's board record.
+4. Every day at 5:00 PM, each player's Muse re-sweeps Canvas, messages the player, and emails the coach only about *new* misses and *new* turn-ins, with a small changed-rows-only CSV.
+5. The coach imports the daily CSV. Imports merge — they update that player's assignments without wiping the rest of the team.
+6. Work the colors: red first, yellow next, green is good.
+
+A fully automatic live sync (no importing) would need a secure backend with player accounts and a private database. Do not fake that with public files in this GitHub repo — student records do not belong in public repo files.
 
 ## Import format
 
