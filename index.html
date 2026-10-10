@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Players School Center — Player School Tracker</title>
+  <meta name="description" content="A simple command center for a college soccer coach to track every player's Canvas assignments, missed work, submissions, and next due dates." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">College Soccer • Academics</div>
+      <h1>Players School Center</h1>
+      <p>Every player. Every class. One organized view — built for the daily 5:00 PM Canvas check.</p>
+    </div>
+    <div class="top-actions">
+      <button id="addPlayerBtn" class="btn primary">+ Add player</button>
+      <button id="loadSampleBtn" class="btn ghost">Load sample team</button>
+    </div>
+  </header>
+
+  <div class="privacy-note">
+    <strong>Private by design:</strong> this starter site stores player data only in <em>this browser</em> on this computer.
+    Do not upload real player names, grades, or school records into a GitHub repo. GitHub hosts the page code — your imported data stays local unless you build a secure login backend later.
+  </div>
+
+  <main class="layout">
+    <section class="kpis" aria-label="Team summary">
+      <article class="kpi"><span id="kpiPlayers">0</span><label>Players tracked</label></article>
+      <article class="kpi good"><span id="kpiOnTrack">0</span><label>On track</label></article>
+      <article class="kpi warn"><span id="kpiWatch">0</span><label>Watch list</label></article>
+      <article class="kpi bad"><span id="kpiAtRisk">0</span><label>At risk</label></article>
+      <article class="kpi"><span id="kpiMissing">0</span><label>Missing assignments</label></article>
+      <article class="kpi"><span id="kpiDue48">0</span><label>Due in next 48 hours</label></article>
+    </section>
+
+    <section class="panel controls">
+      <div class="control-row">
+        <input id="searchInput" type="search" placeholder="Search player, position, course, or assignment…" />
+        <select id="sortSelect" aria-label="Sort players">
+          <option value="risk">Sort: highest risk first</option>
+          <option value="due">Sort: next due soonest</option>
+          <option value="name">Sort: name A–Z</option>
+          <option value="missing">Sort: most missing</option>
+        </select>
+      </div>
+      <div class="filter-row" role="group" aria-label="Status filters">
+        <button class="chip active" data-filter="all">All players</button>
+        <button class="chip" data-filter="On Track">On track</button>
+        <button class="chip" data-filter="Watch">Watch</button>
+        <button class="chip" data-filter="At Risk">At risk</button>
+        <button class="chip" data-filter="missing">Has missing work</button>
+        <button class="chip" data-filter="due48">Due in 48h</button>
+      </div>
+      <div class="io-row">
+        <label class="btn small">Import CSV / JSON <input id="importFile" type="file" accept=".csv,.json" hidden /></label>
+        <button id="exportCsvBtn" class="btn small">Export CSV</button>
+        <button id="backupBtn" class="btn small">Backup JSON</button>
+        <button id="clearBtn" class="btn small danger">Clear local data</button>
+      </div>
+      <p class="hint">Import format: one row per assignment with columns <code>name, position, year, course, assignment, due, status</code>. Status can be <code>submitted</code>, <code>missed</code>, or <code>upcoming</code>. A ready-made example is in <code>sample-data.csv</code>.</p>
+    </section>
+
+    <section class="content-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Players</h2>
+          <span id="playerCount" class="muted"></span>
+        </div>
+        <div id="playerList" class="player-list"></div>
+        <div id="emptyState" class="empty" hidden>
+          <h3>No players match</h3>
+          <p>Add a player, load the sample team, or import a CSV from your players' daily Canvas updates.</p>
+        </div>
+      </div>
+
+      <aside class="panel detail" id="detailPanel">
+        <div class="panel-head">
+          <h2>Player detail</h2>
+          <span class="muted">Click a player</span>
+        </div>
+        <div id="detailBody" class="detail-body">
+          <p class="muted">Pick a player on the left to see courses, assignments, what was missed, what was turned in, and the next deadline.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Today's 5:00 PM check — team feed</h2>
+        <span class="muted">New misses and turn-ins show here after each daily check</span>
+      </div>
+      <div id="teamFeed" class="feed"></div>
+    </section>
+
+    <section class="panel how">
+      <h2>How this works with your players' Muse accounts</h2>
+      <ol>
+        <li>Each player pastes the shared Muse prompt into their own Muse account.</li>
+        <li>Their Muse checks Canvas daily at 5:00 PM and emails you when work is missed or turned in.</li>
+        <li>You paste or import those updates here — or type them in — and this page turns the team green, yellow, or red.</li>
+        <li>Red first. Yellow next. Green needs no meeting.</li>
+      </ol>
+    </section>
+  </main>
+
+  <dialog id="playerDialog">
+    <form id="playerForm" method="dialog">
+      <h2 id="dialogTitle">Add player</h2>
+      <input type="hidden" id="playerId" />
+      <label>Full name <input id="fName" required placeholder="Example: Alex Rivera" /></label>
+      <div class="form-grid">
+        <label>Position <input id="fPosition" placeholder="GK, CB, CM, ST…" /></label>
+        <label>Year <input id="fYear" placeholder="Fr, So, Jr, Sr" /></label>
+      </div>
+      <label>Player email <input id="fEmail" type="email" placeholder="player@school.edu" /></label>
+      <label>Assignments — one per line
+        <textarea id="fAssignments" rows="8" placeholder="Course | Assignment | Due (YYYY-MM-DD) | Status (upcoming/submitted/missed)&#10;ENG 101 | Essay 2 draft | 2026-10-14 | upcoming"></textarea>
+      </label>
+      <label>Coach notes <textarea id="fNotes" rows="3" placeholder="Met Monday, needs math tutoring, etc."></textarea></label>
+      <div class="dialog-actions">
+        <button type="button" id="cancelDialogBtn" class="btn">Cancel</button>
+        <button type="submit" class="btn primary">Save player</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer>
+    Starter build v1 • Works on GitHub Pages • Data stays in your browser until you add a secure backend.
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
