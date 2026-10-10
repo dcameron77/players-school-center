@@ -69,5 +69,16 @@ dialog::backdrop{background:rgba(7,21,38,.55)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .dialog-actions{display:flex;justify-content:flex-end;gap:10px}
 footer{color:var(--muted);text-align:center;padding:12px 20px 30px;font-size:13px}
+.lock-screen{position:fixed;inset:0;z-index:50;background:linear-gradient(135deg,#071526,#12352b);display:grid;place-items:center;padding:20px}
+.lock-screen[hidden]{display:none}
+.lock-card{background:#fff;border-radius:22px;padding:26px;max-width:460px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.lock-card h2{margin:6px 0 10px;font-size:28px}
+.lock-card form{display:grid;gap:12px;margin-top:14px}
+.eyebrow.dark{color:var(--green)}
+.btn.full{width:100%}
+.lock-message{min-height:20px;color:var(--red);font-size:14px;margin:0}
+.lock-note{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:0}
+.inbox-panel textarea{margin-top:10px}
+#emailPlayerName{margin-top:4px}
 @media(max-width:1050px){.kpis{grid-template-columns:repeat(3,1fr)}.content-grid{grid-template-columns:1fr}.detail{position:static}.controls .control-row{grid-template-columns:1fr}}
 @media(max-width:640px){.topbar{padding:26px 18px}.topbar h1{font-size:32px}.layout{padding:16px}.privacy-note{margin:14px 16px 0}.kpis{grid-template-columns:repeat(2,1fr)}.player-card{grid-template-columns:44px 1fr}.player-card .pill{grid-column:2}.form-grid{grid-template-columns:1fr}}

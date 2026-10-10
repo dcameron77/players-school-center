@@ -180,4 +180,77 @@ function importCsv(text){
 function splitCsv(line){ const out=[]; let cur="",q=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;} else if(ch==='"'){q=!q;} else if(ch===","&&!q){out.push(cur.trim());cur="";} else cur+=ch; } out.push(cur.trim()); return out; }
 function download(name, content, type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([content],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 
+/* --- Device password screen (privacy screen only, not internet security) --- */
+const LOCK_HASH_KEY = "playersSchoolCenterLockHashV1";
+const LOCK_SESSION_KEY = "playersSchoolCenterUnlockedV1";
+async function hashText(text){
+  if(window.crypto?.subtle){ const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("players-school-center:" + text)); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
+  let h = 0; for(let i=0;i<text.length;i++){ h = ((h<<5)-h) + text.charCodeAt(i); h |= 0; } return "fallback-" + Math.abs(h);
+}
+function setBoardLocked(locked){
+  document.getElementById("lockScreen").hidden = !locked;
+  document.querySelectorAll(".lockable").forEach(el=>{ el.style.display = locked ? "none" : ""; });
+  document.body.style.overflow = locked ? "hidden" : "";
+}
+async function initLock(){
+  const savedHash = localStorage.getItem(LOCK_HASH_KEY);
+  const unlocked = sessionStorage.getItem(LOCK_SESSION_KEY) === "yes";
+  const title = document.getElementById("lockTitle"), text = document.getElementById("lockText"), button = document.getElementById("lockButton"), confirmWrap = document.getElementById("lockConfirmWrap");
+  if(!savedHash){ title.textContent = "Set a password for this board"; text.textContent = "First time here: choose a password on this device. You set it here on the page — never send it to anyone in chat or email."; button.textContent = "Set password and open board"; confirmWrap.hidden = false; setBoardLocked(true); return; }
+  if(unlocked){ setBoardLocked(false); return; }
+  title.textContent = "Players School Center is locked"; text.textContent = "Enter the password you set on this device to see the board."; button.textContent = "Unlock board"; confirmWrap.hidden = true; setBoardLocked(true);
+}
+document.getElementById("lockForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const pw = document.getElementById("lockPassword").value, msg = document.getElementById("lockMessage"), savedHash = localStorage.getItem(LOCK_HASH_KEY);
+  if(!savedHash){
+    const confirmPw = document.getElementById("lockConfirm").value;
+    if(pw.length < 6){ msg.textContent = "Use at least 6 characters."; return; }
+    if(pw !== confirmPw){ msg.textContent = "Passwords do not match."; return; }
+    localStorage.setItem(LOCK_HASH_KEY, await hashText(pw));
+  } else if(await hashText(pw) !== savedHash){ msg.textContent = "Wrong password for this device."; return; }
+  sessionStorage.setItem(LOCK_SESSION_KEY, "yes"); document.getElementById("lockPassword").value = ""; msg.textContent = ""; setBoardLocked(false);
+});
+document.getElementById("lockNowBtn")?.addEventListener("click", ()=>{ sessionStorage.removeItem(LOCK_SESSION_KEY); initLock(); });
+
+/* --- Add a coach email update to the local board --- */
+function flexibleDate(value){
+  if(!value) return offsetDate(3);
+  const iso = value.match(/\d{4}-\d{2}-\d{2}/); if(iso) return iso[0];
+  const d = new Date(value); if(!Number.isNaN(d.getTime())) return d.toISOString().slice(0,10);
+  return offsetDate(3);
+}
+function grab(text, label){ const m = text.match(new RegExp(label + "\\s*[:\\-]\\s*([^\\n]+)", "i")); return m ? m[1].trim() : ""; }
+function parseEmailToBoard(rawText){
+  const text = rawText.trim(); if(!text) return 0;
+  // Best path: player's Muse included the CSV import block.
+  const headerIdx = text.toLowerCase().indexOf("name,position,year,course,assignment,due,status");
+  if(headerIdx >= 0){
+    const csvText = text.slice(headerIdx).split(/\n\s*\n/)[0];
+    const imported = importCsv(csvText); players = mergePlayers(players, imported); return imported.reduce((s,p)=>s+p.assignments.length,0) || imported.length;
+  }
+  // Plain coach update email path.
+  let playerName = document.getElementById("emailPlayerName").value.trim();
+  const subject = text.match(/subject:\s*([^\n]+)/i)?.[1] || "";
+  const subjectParts = subject.split(" - ").map(s=>s.trim());
+  if(!playerName && subject.toLowerCase().startsWith("school update") && subjectParts[1]) playerName = subjectParts[1];
+  if(!playerName){ const fromTracker = text.match(/from\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)'s\s+Canvas tracker/i); if(fromTracker) playerName = fromTracker[1]; }
+  if(!playerName) playerName = "Unnamed Player";
+  const course = grab(text, "Course") || subjectParts[2] || "";
+  const title = grab(text, "Assignment") || "Email update";
+  const statusRaw = (grab(text, "Status") || "").toLowerCase();
+  const status = statusRaw.includes("miss") ? "missed" : (statusRaw.includes("turn") || statusRaw.includes("submit") ? "submitted" : "upcoming");
+  const due = flexibleDate(grab(text, "Due") || grab(text, "Submitted"));
+  const imported = [{ id: `p${Date.now()}`, name: playerName, position: "", year: "", email: "", notes: "", lastCheck: "Email added " + new Date().toLocaleDateString(), assignments: [{ course, title, due, status }] }];
+  players = mergePlayers(players, imported); selectedId = players.find(p=>p.name === playerName)?.id || selectedId; return 1;
+}
+document.getElementById("parseEmailBtn")?.addEventListener("click", ()=>{
+  const box = document.getElementById("emailPaste"), result = document.getElementById("emailResult");
+  const added = parseEmailToBoard(box.value);
+  if(added > 0){ render(); result.textContent = `Added ${added} assignment update${added===1?"":"s"} to the board. Saved only in this browser — not uploaded to GitHub.`; box.value = ""; }
+  else { result.textContent = "I could not find an assignment in that email. Paste the full email including the subject, or the CSV import block."; }
+});
+document.getElementById("clearEmailBtn")?.addEventListener("click", ()=>{ document.getElementById("emailPaste").value = ""; document.getElementById("emailResult").textContent = ""; });
+
 render();
+initLock();

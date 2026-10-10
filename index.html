@@ -8,7 +8,22 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
+  <section id="lockScreen" class="lock-screen" hidden>
+    <div class="lock-card">
+      <div class="eyebrow dark">Private board</div>
+      <h2 id="lockTitle">Players School Center is locked</h2>
+      <p id="lockText">Enter the password you set on this device to see the board.</p>
+      <form id="lockForm">
+        <label>Password <input id="lockPassword" type="password" autocomplete="current-password" placeholder="Board password" /></label>
+        <label id="lockConfirmWrap" hidden>Confirm password <input id="lockConfirm" type="password" autocomplete="new-password" placeholder="Type it again" /></label>
+        <p id="lockMessage" class="lock-message"></p>
+        <button type="submit" id="lockButton" class="btn primary full">Unlock board</button>
+      </form>
+      <p class="lock-note">Important: this password only hides the board on this device/browser. It does not protect student records if they are posted in a public GitHub repo or public web file. Real player data stays in this browser, never in the GitHub repo.</p>
+    </div>
+  </section>
+
+  <header class="topbar lockable">
     <div>
       <div class="eyebrow">College Soccer • Academics</div>
       <h1>Players School Center</h1>
@@ -17,15 +32,16 @@
     <div class="top-actions">
       <button id="addPlayerBtn" class="btn primary">+ Add player</button>
       <button id="loadSampleBtn" class="btn ghost">Load sample team</button>
+      <button id="lockNowBtn" class="btn ghost">Lock board</button>
     </div>
   </header>
 
-  <div class="privacy-note">
+  <div class="privacy-note lockable">
     <strong>Private by design:</strong> this starter site stores player data only in <em>this browser</em> on this computer.
-    Do not upload real player names, grades, or school records into a GitHub repo. GitHub hosts the page code — your imported data stays local unless you build a secure login backend later.
+    Do not upload real player names, grades, or school records into a GitHub repo. GitHub hosts the page code only — player emails/details stay between you and your Muse here, and imported board data stays local on this device. The password screen hides the board on this device; it cannot protect data posted publicly.
   </div>
 
-  <main class="layout">
+  <main class="layout lockable">
     <section class="kpis" aria-label="Team summary">
       <article class="kpi"><span id="kpiPlayers">0</span><label>Players tracked</label></article>
       <article class="kpi good"><span id="kpiOnTrack">0</span><label>On track</label></article>
@@ -60,6 +76,21 @@
         <button id="clearBtn" class="btn small danger">Clear local data</button>
       </div>
       <p class="hint">Import format: one row per assignment with columns <code>name, position, year, course, assignment, due, status</code>. Status can be <code>submitted</code>, <code>missed</code>, or <code>upcoming</code>. Imports <strong>merge</strong> into the board — a player's first full report adds them, and daily change files only update their assignments. A ready-made example is in <code>sample-data.csv</code>. Each player's Muse sends the first full report and daily updates to the coach by email with this CSV format included.</p>
+    </section>
+
+    <section class="panel inbox-panel">
+      <div class="panel-head">
+        <h2>Add a player email update</h2>
+        <span class="muted">Paste a coach update email — the board updates here, not in public GitHub files</span>
+      </div>
+      <p class="hint">When you get an email from a player's Muse, paste the whole email here. If it includes the <code>PLAYERS SCHOOL CENTER IMPORT (CSV)</code> block, I will read that exactly. If it is a plain "School update" email, I will pull out the player, course, assignment, due date, and turned in / missed status. Nothing is uploaded to GitHub — the update merges into the board saved in this browser.</p>
+      <input id="emailPlayerName" placeholder="Player name if it is not clear in the email (example: Alex Rivera)" />
+      <textarea id="emailPaste" rows="8" placeholder="Paste the player's coach email here, including the subject line if you can…"></textarea>
+      <div class="io-row">
+        <button id="parseEmailBtn" class="btn primary small">Add email to board</button>
+        <button id="clearEmailBtn" class="btn small">Clear email box</button>
+        <span id="emailResult" class="muted"></span>
+      </div>
     </section>
 
     <section class="content-grid">
@@ -126,7 +157,7 @@
     </form>
   </dialog>
 
-  <footer>
+  <footer class="lockable">
     Starter build v1 • Works on GitHub Pages • Data stays in your browser until you add a secure backend.
   </footer>
 

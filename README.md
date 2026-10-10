@@ -26,7 +26,7 @@ A simple, organized starter website for a college soccer coach to track every pl
 
 GitHub hosts the *page code*. Do **not** upload real player names, grades, Canvas exports, or school records into the GitHub repo files.
 
-This v1 site saves imported and typed-in player data only in the browser on the computer you are using (`localStorage`). That makes it good for a coach's own laptop. It is not yet a secure multi-coach, multi-device system. If more staff need to log in and see the same live data, the next version needs a real login and a private database — do not use public GitHub Pages files for private student records.
+This site saves imported and typed-in player data only in the browser on the computer you are using (`localStorage`). That makes it good for a coach's own laptop. It is not yet a secure multi-coach, multi-device system. If more staff need to log in and see the same live data, the next version needs a real login and a private database — do not use public GitHub Pages files for private student records.
 
 ## How player updates get here
 
@@ -61,3 +61,8 @@ Status values: `upcoming`, `submitted`, `missed`, `late`.
 - Add practice availability: green = full go, yellow = check-in, red = meeting before practice
 
 Starter build v1 — made to be simple first.
+
+
+## Private flagging (coach + Muse)
+
+Keep players' private school details out of this public GitHub repo. Player update emails go to the coach. The coach's Muse reads/parses them privately (after the coach connects email), keeps the working record in the coach's private Muse workspace, and flags the coach in chat when a player looks failing or at risk of being dropped — for example 2 or more missed assignments, a missed major assignment/exam, a reported failing grade, or work piling up due with nothing turned in. The GitHub page is the empty board/code; the board shows a player only after the coach pastes or imports an update on his own device, behind the device password screen. The password screen is a privacy screen for that device, not a secure internet login — a real multi-coach login would need a private backend with server-side accounts.
